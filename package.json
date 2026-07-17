@@ -1,0 +1,67 @@
+{
+  "name": "odrs-daily-task",
+  "version": "1.0.5",
+  "description": "Widget de checklist de tarefas diárias com a identidade visual da Omar do Rio",
+  "main": "main.js",
+  "author": "Omar do Rio",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build:win": "electron-builder --win --publish=never",
+    "build:mac": "electron-builder --mac --publish=never",
+    "build:all": "electron-builder --win --mac --publish=never",
+    "publish:win": "electron-builder --win --publish always",
+    "publish:mac": "electron-builder --mac --publish always"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9",
+    "google-auth-library": "^9.15.0"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.omardorio.odrsdailytask",
+    "productName": "ODR's Daily Task",
+    "files": [
+      "main.js",
+      "preload.js",
+      "taskStore.js",
+      "googleCalendar.js",
+      "renderer/**/*",
+      "assets/**/*"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "omardorio",
+      "repo": "odrs-daily-task",
+      "releaseType": "release"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.productivity"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;" />
+  <title>ODR's Daily Task</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="widget">
+    <header class="drag-region">
+      <img class="mascot" src="../assets/mascot.png" alt="Mascote Omar do Rio" />
+      <div class="title-block">
+        <h1>Tarefas de hoje</h1>
+        <span id="today-date" class="date"></span>
+      </div>
+      <div class="window-controls no-drag">
+        <button id="minimize-btn" class="icon-btn" title="Minimizar para a bandeja">&#9472;</button>
+        <button id="close-btn" class="icon-btn" title="Ocultar">&#10005;</button>
+      </div>
+    </header>
+
+    <form id="add-task-form" class="add-task-row no-drag">
+      <input
+        id="task-input"
+        type="text"
+        placeholder="Adicionar tarefa..."
+        maxlength="140"
+        autocomplete="off"
+      />
+      <button type="submit" id="add-btn" class="add-btn" title="Adicionar">+</button>
+    </form>
+
+    <ul id="task-list" class="task-list no-drag"></ul>
+    <p id="empty-state" class="empty-state">Nenhuma tarefa por hoje. Aproveite o dia! 🌊</p>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+name: Build installers
+
+on:
+  push:
+    branches:
+      - "main"
+    tags:
+      - "v*"
+  workflow_dispatch: {}
+
+# Regular branch pushes just compile-check the app (uploaded as a workflow
+# artifact). A manual dispatch, or pushing a "vX.Y.Z" tag matching the
+# package.json version, actually PUBLISHES: electron-builder creates/updates
+# a GitHub Release for that version and uploads the installers together with
+# the latest.yml/latest-mac.yml update-feed files electron-updater needs to
+# offer the patch to everyone else's already-installed app.
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - name: Build only (no publish)
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
+        run: npm run build:win
+      - name: Build and publish release
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+        run: npm run publish:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Only needed for plain compile-check pushes: a publish run already
+      # has the installers attached to the GitHub Release itself, and
+      # duplicating them here as workflow artifacts was burning through the
+      # account's Actions storage quota for no benefit.
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
+        with:
+          name: odrs-daily-task-windows
+          path: dist/*.exe
+
+  build-mac:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - name: Build only (no publish)
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
+        run: npm run build:mac
+      - name: Build and publish release
+        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+        run: npm run publish:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/v')
+        with:
+          name: odrs-daily-task-mac
+          path: |
+            dist/*.dmg
+            dist/*.zip
