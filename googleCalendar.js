@@ -83,7 +83,11 @@ class GoogleCalendarClient {
         oauth2Client = new OAuth2Client(client_id, client_secret, `http://127.0.0.1:${port}/oauth2callback`);
         const authUrl = oauth2Client.generateAuthUrl({
           access_type: 'offline',
-          prompt: 'consent',
+          // 'select_account' forces Google's account chooser every time,
+          // even if the system browser already has a single session signed
+          // in - otherwise it can silently reuse whichever account is
+          // currently logged in there instead of letting the user pick.
+          prompt: 'select_account consent',
           scope: SCOPES,
         });
         shell.openExternal(authUrl);
