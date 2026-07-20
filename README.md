@@ -25,12 +25,12 @@ mais largo ou mais alto); uma vez redimensionado manualmente, o widget para de
 ajustar a altura sozinho conforme tarefas são adicionadas (a lista passa a
 rolar internamente dentro do tamanho escolhido).
 
-O botão "─" minimiza para a barra de tarefas do Windows (ou Dock, no Mac) como
-qualquer outro programa — clique no ícone dele lá para reabrir. Ele também
-continua disponível pelo ícone na bandeja do sistema (perto do relógio),
-clicando ou pelo menu "Mostrar / Ocultar". O botão "✕" oculta o widget por
-completo (some da barra de tarefas e da bandeja de tarefas abertas) — para
-fechar de verdade, use "Sair" no menu do ícone da bandeja.
+Por padrão, tanto o botão "─" quanto o "✕" fazem a mesma coisa: minimizam para
+a barra de tarefas do Windows (ou Dock, no Mac) como qualquer outro programa —
+clique no ícone dele lá para reabrir. O widget também continua disponível pelo
+ícone na bandeja do sistema (perto do relógio), clicando ou pelo menu "Mostrar
+/ Ocultar". Para fechar de verdade (sair do app), use "Sair" no menu do ícone
+da bandeja.
 
 ## Como funciona o checklist
 

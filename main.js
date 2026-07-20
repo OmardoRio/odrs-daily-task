@@ -397,7 +397,10 @@ ipcMain.on('window:minimize', () => {
 });
 
 ipcMain.on('window:close', () => {
-  if (mainWindow) mainWindow.hide();
+  // By default "x" has the same effect as "-": it pins the widget to the
+  // taskbar/Dock instead of hiding it away where only the tray icon can
+  // bring it back. Fully closing still only happens via "Sair" in the tray.
+  if (mainWindow) mainWindow.minimize();
 });
 
 // Right-click on empty space in the widget (not on a task or a button) pops
