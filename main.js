@@ -14,10 +14,8 @@ const MIN_WINDOW_WIDTH = 260;
 const MIN_WINDOW_HEIGHT = 160;
 
 // Fixed chrome above the task list (widget padding + header + add-task row),
-// plus extra bottom padding that clears the Google-connect badge in the
-// widget's bottom-left corner, plus the empty-state message shown when there
-// are no tasks yet.
-const CHROME_HEIGHT = 182;
+// plus the empty-state message shown when there are no tasks yet.
+const CHROME_HEIGHT = 158;
 const PROGRESS_ROW_HEIGHT = 28;
 const EMPTY_STATE_HEIGHT = 46;
 const ROW_HEIGHT = 38;
@@ -163,30 +161,12 @@ async function syncGoogleCalendarNow() {
   }
 }
 
-function googleStatusPayload() {
-  return {
-    hasCredentials: googleCalendar.hasCredentials(),
-    connected: googleCalendar.isConnected(),
-  };
-}
-
-function broadcastGoogleStatus() {
-  if (mainWindow) mainWindow.webContents.send('google:status-changed', googleStatusPayload());
-}
-
-// Shared by the tray menu item and the widget's own corner badge, so both
-// entry points stay in sync (tray label, widget badge state, imported tasks).
-async function connectGoogleFlow() {
-  try {
-    await googleCalendar.connect();
-    await syncGoogleCalendarNow();
-  } catch (err) {
-    console.error("ODR's Daily Task: falha ao conectar Google Agenda:", err);
-  } finally {
-    tray.setContextMenu(buildTrayMenu());
-    broadcastGoogleStatus();
-  }
-  return googleStatusPayload();
+function connectGoogleFlow() {
+  return googleCalendar
+    .connect()
+    .then(() => syncGoogleCalendarNow())
+    .catch((err) => console.error("ODR's Daily Task: falha ao conectar Google Agenda:", err))
+    .finally(() => tray.setContextMenu(buildTrayMenu()));
 }
 
 function disconnectGoogleFlow() {
@@ -195,16 +175,11 @@ function disconnectGoogleFlow() {
   resizeToTaskCount(state.tasks.length);
   if (mainWindow) mainWindow.webContents.send('tasks:updated', state);
   tray.setContextMenu(buildTrayMenu());
-  broadcastGoogleStatus();
-  return googleStatusPayload();
 }
 
-// Shared by the tray menu and the widget's own corner badge (clicking it
-// pops this same list as a standalone menu), so both entry points always
-// offer the same options for the current connection state. Only one Google
-// account can be connected at a time: while connected the only way to
-// switch is "Desconectar" first, then "Conectar" again (where Google's own
-// screen lets the user pick a different account).
+// Only one Google account can be connected at a time: while connected the
+// only way to switch is "Desconectar" first, then "Conectar" again (where
+// Google's own screen lets the user pick a different account).
 function buildGoogleMenuItems() {
   return !googleCalendar.hasCredentials()
     ? [{ label: 'Google Agenda (sem credenciais configuradas)', enabled: false }]
@@ -391,8 +366,6 @@ ipcMain.handle('tasks:rename', (_event, id, text) => withResize(taskStore.rename
 ipcMain.handle('tasks:reorder', (_event, orderedIds) => taskStore.reorderTasks(orderedIds));
 ipcMain.handle('draft:set', (_event, text) => taskStore.setDraft(text));
 
-ipcMain.handle('google:getStatus', () => googleStatusPayload());
-
 ipcMain.on('window:minimize', () => {
   // A real OS minimize (not hide): it lands in the taskbar so it's easy to
   // find and restore, instead of only being reachable from the tray icon.
@@ -436,15 +409,6 @@ ipcMain.on('context-menu:show', () => {
     },
   ]);
   menu.popup({ window: mainWindow });
-});
-
-// Clicking the widget's own Google-connect badge pops the same menu the
-// tray offers (Conectar/Sincronizar/Desconectar, or a disabled explanatory
-// item when no credentials are configured) instead of guessing which single
-// action the click should mean.
-ipcMain.on('google-context-menu:show', () => {
-  if (!mainWindow) return;
-  Menu.buildFromTemplate(buildGoogleMenuItems()).popup({ window: mainWindow });
 });
 
 // Right-click on a task row itself: lets it be toggled recurring (skipped
