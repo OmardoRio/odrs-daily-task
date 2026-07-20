@@ -25,11 +25,12 @@ body {
 }
 
 .widget {
+  position: relative;
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: 16px 16px 40px;
   border-radius: 26px;
   border: 1px solid var(--glass-border);
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.28));
@@ -154,6 +155,41 @@ body {
 
 .add-btn:active {
   transform: scale(0.92);
+}
+
+.progress-wrap {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.progress-wrap.visible {
+  display: flex;
+}
+
+.progress-track {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(18, 58, 92, 0.12);
+  overflow: hidden;
+}
+
+.progress-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--orange-light), var(--orange));
+  transition: width 0.25s ease;
+}
+
+.progress-label {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--navy);
+  opacity: 0.7;
 }
 
 .task-list {
@@ -333,6 +369,16 @@ body {
   border-color: var(--navy);
 }
 
+/* Subtle pastel tint, not a whole-row opacity drop like .imported above - a
+   recurring task is still a fully "normal", fully editable task day to day,
+   just one that quietly reappears on its own. */
+.task-item.recurring {
+  background: rgba(242, 101, 34, 0.1);
+  border-radius: 8px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
 .empty-state {
   text-align: center;
   font-size: 12px;
@@ -344,4 +390,48 @@ body {
 
 .empty-state.visible {
   display: block;
+}
+
+.google-icon {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid rgba(18, 58, 92, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.google-icon:hover {
+  opacity: 1;
+}
+
+.google-icon-badge {
+  font-family: Georgia, "Iowan Old Style", Cambria, serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--navy-dark);
+}
+
+.google-icon.connected {
+  opacity: 0.9;
+  border-color: var(--orange);
+  background: rgba(242, 101, 34, 0.14);
+}
+
+.google-icon.connected .google-icon-badge {
+  color: var(--orange);
+}
+
+.google-icon.no-credentials {
+  opacity: 0.25;
+  cursor: default;
 }

@@ -11,7 +11,14 @@ contextBridge.exposeInMainWorld('api', {
   minimize: () => ipcRenderer.send('window:minimize'),
   close: () => ipcRenderer.send('window:close'),
   showContextMenu: () => ipcRenderer.send('context-menu:show'),
+  showTaskContextMenu: (id, isRecurring) => ipcRenderer.send('task-context-menu:show', id, isRecurring),
+  getGoogleStatus: () => ipcRenderer.invoke('google:getStatus'),
+  connectGoogle: () => ipcRenderer.invoke('google:connect'),
+  disconnectGoogle: () => ipcRenderer.invoke('google:disconnect'),
   onTasksUpdated: (callback) => {
     ipcRenderer.on('tasks:updated', (_event, state) => callback(state));
+  },
+  onGoogleStatusChanged: (callback) => {
+    ipcRenderer.on('google:status-changed', (_event, status) => callback(status));
   },
 });

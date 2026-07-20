@@ -5,6 +5,10 @@ const form = document.getElementById('add-task-form');
 const input = document.getElementById('task-input');
 const minimizeBtn = document.getElementById('minimize-btn');
 const closeBtn = document.getElementById('close-btn');
+const progressWrapEl = document.getElementById('progress-wrap');
+const progressFillEl = document.getElementById('progress-fill');
+const progressLabelEl = document.getElementById('progress-label');
+const googleIconBtn = document.getElementById('google-icon-btn');
 
 function formatDate(dateKey) {
   const [y, m, d] = dateKey.split('-').map(Number);
@@ -19,10 +23,23 @@ function formatDate(dateKey) {
 
 let currentState = null;
 
+function updateProgress(state) {
+  const total = state.tasks.length;
+  if (!total) {
+    progressWrapEl.classList.remove('visible');
+    return;
+  }
+  const done = state.tasks.filter((t) => t.done).length;
+  progressWrapEl.classList.add('visible');
+  progressFillEl.style.width = `${Math.round((done / total) * 100)}%`;
+  progressLabelEl.textContent = `${done}/${total} concluídas`;
+}
+
 function renderTasks(state) {
   currentState = state;
   dateEl.textContent = formatDate(state.date);
   taskListEl.innerHTML = '';
+  updateProgress(state);
 
   if (!state.tasks.length) {
     emptyStateEl.classList.add('visible');
@@ -33,7 +50,11 @@ function renderTasks(state) {
   for (const task of state.tasks) {
     const isGoogle = task.source === 'google';
     const li = document.createElement('li');
-    li.className = 'task-item' + (task.done ? ' done' : '') + (isGoogle ? ' imported' : '');
+    li.className =
+      'task-item' +
+      (task.done ? ' done' : '') +
+      (isGoogle ? ' imported' : '') +
+      (task.recurring ? ' recurring' : '');
     li.dataset.id = task.id;
 
     li.innerHTML = `
@@ -205,9 +226,21 @@ taskListEl.addEventListener('click', async (event) => {
 minimizeBtn.addEventListener('click', () => window.api.minimize());
 closeBtn.addEventListener('click', () => window.api.close());
 
-// Right-click on empty space (not a task row, not a button/input) pops the
-// native "Resetar tarefas" / "Verificar atualizações" menu.
+// Right-click on a task row offers "Tornar recorrente" / "Tornar tarefa
+// comum" (skipped for Google-imported tasks, which aren't manually managed).
+// Right-click on empty space (not a task row, not a button/input) instead
+// pops the native "Resetar tarefas" / "Verificar atualizações" menu.
 document.addEventListener('contextmenu', (event) => {
+  const taskItem = event.target.closest('.task-item');
+  if (taskItem) {
+    if (event.target.closest('button, input')) return;
+    const task = currentState.tasks.find((t) => t.id === taskItem.dataset.id);
+    if (!task || task.source === 'google') return;
+    event.preventDefault();
+    window.api.showTaskContextMenu(task.id, Boolean(task.recurring));
+    return;
+  }
+
   const isInteractive = event.target.closest(
     '.task-item, .add-task-row, .window-controls, button, input'
   );
@@ -216,6 +249,32 @@ document.addEventListener('contextmenu', (event) => {
   window.api.showContextMenu();
 });
 
+function applyGoogleStatus(status) {
+  googleIconBtn.classList.toggle('connected', status.connected);
+  googleIconBtn.classList.toggle('no-credentials', !status.hasCredentials);
+  googleIconBtn.title = !status.hasCredentials
+    ? 'Google Agenda: credenciais não configuradas neste computador'
+    : status.connected
+    ? 'Google Agenda conectada — clique para desconectar'
+    : 'Conectar Google Agenda';
+}
+
+googleIconBtn.addEventListener('click', async () => {
+  const status = await window.api.getGoogleStatus();
+  if (!status.hasCredentials) return;
+  googleIconBtn.disabled = true;
+  try {
+    const newStatus = status.connected
+      ? await window.api.disconnectGoogle()
+      : await window.api.connectGoogle();
+    applyGoogleStatus(newStatus);
+  } finally {
+    googleIconBtn.disabled = false;
+  }
+});
+
 window.api.onTasksUpdated((state) => renderTasks(state));
+window.api.onGoogleStatusChanged((status) => applyGoogleStatus(status));
 
 refresh();
+window.api.getGoogleStatus().then(applyGoogleStatus);

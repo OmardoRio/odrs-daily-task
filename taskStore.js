@@ -39,10 +39,16 @@ class TaskStore {
     fs.renameSync(tmpPath, this.filePath);
   }
 
+  // Recurring tasks survive the daily wipe (with "done" reset for the new
+  // day); everything else - regular tasks and Google-imported ones, which
+  // get refreshed by the next sync anyway - is dropped like before.
   _rolloverIfNewDay() {
     const key = todayKey();
     if (this.data.date !== key) {
-      this.data = { date: key, tasks: [], draft: '' };
+      const recurring = this.data.tasks
+        .filter((t) => t.recurring)
+        .map((t) => ({ ...t, done: false }));
+      this.data = { date: key, tasks: recurring, draft: '' };
       this._save();
       return true;
     }
@@ -62,6 +68,7 @@ class TaskStore {
         id: `${Date.now()}-${Math.floor(Math.random() * 100000)}`,
         text: trimmed,
         done: false,
+        recurring: false,
       });
     }
     this.data.draft = '';
@@ -104,6 +111,19 @@ class TaskStore {
         task.text = trimmed;
         this._save();
       }
+    }
+    return this.getState();
+  }
+
+  // Toggles a task between "recurring" (survives the daily reset) and
+  // regular. Google-imported tasks are managed by the sync, not by hand, so
+  // this is a no-op for them - same restriction as renameTask above.
+  toggleRecurring(id) {
+    this._rolloverIfNewDay();
+    const task = this.data.tasks.find((t) => t.id === id);
+    if (task && task.source !== 'google') {
+      task.recurring = !task.recurring;
+      this._save();
     }
     return this.getState();
   }
