@@ -61,7 +61,8 @@
         { "target": "zip", "arch": ["x64", "arm64"] }
       ],
       "icon": "build/icon.png",
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "artifactName": "${name}-${version}-${arch}-mac.${ext}"
     }
   }
 }
