@@ -199,11 +199,14 @@ function disconnectGoogleFlow() {
   return googleStatusPayload();
 }
 
-function buildTrayMenu() {
-  // Only one Google account can be connected at a time: while connected the
-  // only way to switch is "Desconectar" first, then "Conectar" again (where
-  // Google's own screen lets the user pick a different account).
-  const googleItems = !googleCalendar.hasCredentials()
+// Shared by the tray menu and the widget's own corner badge (clicking it
+// pops this same list as a standalone menu), so both entry points always
+// offer the same options for the current connection state. Only one Google
+// account can be connected at a time: while connected the only way to
+// switch is "Desconectar" first, then "Conectar" again (where Google's own
+// screen lets the user pick a different account).
+function buildGoogleMenuItems() {
+  return !googleCalendar.hasCredentials()
     ? [{ label: 'Google Agenda (sem credenciais configuradas)', enabled: false }]
     : googleCalendar.isConnected()
     ? [
@@ -211,14 +214,16 @@ function buildTrayMenu() {
         { label: 'Desconectar Google Agenda', click: () => disconnectGoogleFlow() },
       ]
     : [{ label: 'Conectar Google Agenda...', click: () => connectGoogleFlow() }];
+}
 
+function buildTrayMenu() {
   return Menu.buildFromTemplate([
     {
       label: 'Mostrar / Ocultar',
       click: () => toggleMainWindow(),
     },
     { type: 'separator' },
-    ...googleItems,
+    ...buildGoogleMenuItems(),
     { type: 'separator' },
     {
       label: 'Verificar atualizações',
@@ -387,8 +392,6 @@ ipcMain.handle('tasks:reorder', (_event, orderedIds) => taskStore.reorderTasks(o
 ipcMain.handle('draft:set', (_event, text) => taskStore.setDraft(text));
 
 ipcMain.handle('google:getStatus', () => googleStatusPayload());
-ipcMain.handle('google:connect', () => connectGoogleFlow());
-ipcMain.handle('google:disconnect', () => disconnectGoogleFlow());
 
 ipcMain.on('window:minimize', () => {
   // A real OS minimize (not hide): it lands in the taskbar so it's easy to
@@ -433,6 +436,15 @@ ipcMain.on('context-menu:show', () => {
     },
   ]);
   menu.popup({ window: mainWindow });
+});
+
+// Clicking the widget's own Google-connect badge pops the same menu the
+// tray offers (Conectar/Sincronizar/Desconectar, or a disabled explanatory
+// item when no credentials are configured) instead of guessing which single
+// action the click should mean.
+ipcMain.on('google-context-menu:show', () => {
+  if (!mainWindow) return;
+  Menu.buildFromTemplate(buildGoogleMenuItems()).popup({ window: mainWindow });
 });
 
 // Right-click on a task row itself: lets it be toggled recurring (skipped

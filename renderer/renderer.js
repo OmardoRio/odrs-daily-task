@@ -255,23 +255,14 @@ function applyGoogleStatus(status) {
   googleIconBtn.title = !status.hasCredentials
     ? 'Google Agenda: credenciais não configuradas neste computador'
     : status.connected
-    ? 'Google Agenda conectada — clique para desconectar'
+    ? 'Google Agenda conectada — clique para ver opções'
     : 'Conectar Google Agenda';
 }
 
-googleIconBtn.addEventListener('click', async () => {
-  const status = await window.api.getGoogleStatus();
-  if (!status.hasCredentials) return;
-  googleIconBtn.disabled = true;
-  try {
-    const newStatus = status.connected
-      ? await window.api.disconnectGoogle()
-      : await window.api.connectGoogle();
-    applyGoogleStatus(newStatus);
-  } finally {
-    googleIconBtn.disabled = false;
-  }
-});
+// Clicking always opens the menu (Conectar/Sincronizar/Desconectar, or a
+// disabled explanatory item when there are no credentials yet) instead of
+// guessing a single action - the same menu the tray icon offers.
+googleIconBtn.addEventListener('click', () => window.api.showGoogleMenu());
 
 window.api.onTasksUpdated((state) => renderTasks(state));
 window.api.onGoogleStatusChanged((status) => applyGoogleStatus(status));

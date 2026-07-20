@@ -415,23 +415,16 @@ body {
 }
 
 .google-icon-badge {
-  font-family: Georgia, "Iowan Old Style", Cambria, serif;
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--navy-dark);
+  width: 15px;
+  height: 15px;
 }
 
 .google-icon.connected {
-  opacity: 0.9;
+  opacity: 1;
   border-color: var(--orange);
   background: rgba(242, 101, 34, 0.14);
 }
 
-.google-icon.connected .google-icon-badge {
-  color: var(--orange);
-}
-
 .google-icon.no-credentials {
-  opacity: 0.25;
-  cursor: default;
+  opacity: 0.35;
 }
