@@ -26,6 +26,7 @@
   "build": {
     "appId": "com.omardorio.odrsdailytask",
     "productName": "ODR's Daily Task",
+    "afterSign": "build/afterSign.js",
     "files": [
       "main.js",
       "preload.js",
@@ -64,8 +65,7 @@
       "category": "public.app-category.productivity",
       "artifactName": "${name}-${version}-${arch}-mac.${ext}",
       "identity": null,
-      "gatekeeperAssess": false,
-      "afterSign": "build/afterSign.js"
+      "gatekeeperAssess": false
     }
   }
 }
