@@ -23,11 +23,18 @@ const MAX_VISIBLE_ROWS = 8;
 const MIN_HEIGHT = CHROME_HEIGHT + EMPTY_STATE_HEIGHT;
 const MAX_HEIGHT = CHROME_HEIGHT + PROGRESS_ROW_HEIGHT + ROW_HEIGHT * MAX_VISIBLE_ROWS;
 
+// How opaque/white the glass panel looks - lower reads as darker/more see-
+// through, higher as lighter/more solid. Persisted alongside window bounds
+// in window-state.json.
+const OPACITY_LEVELS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
+const DEFAULT_OPACITY = 0.5;
+
 let mainWindow = null;
 let tray = null;
 let taskStore = null;
 let googleCalendar = null;
 let isQuitting = false;
+let currentOpacity = DEFAULT_OPACITY;
 
 // Once the user manually drags or resizes the widget, that becomes their
 // fixed layout and the automatic "grow with the task list" behavior below
@@ -50,6 +57,25 @@ function saveWindowState(state) {
   const tmpPath = `${windowStatePath}.tmp`;
   fs.writeFileSync(tmpPath, JSON.stringify(state, null, 2), 'utf-8');
   fs.renameSync(tmpPath, windowStatePath);
+}
+
+// Stored in the same window-state.json as the bounds, merged in so this
+// never clobbers a previously saved custom position/size.
+function persistOpacity(value) {
+  currentOpacity = value;
+  saveWindowState({ ...(loadWindowState() || {}), opacity: value });
+}
+
+function buildOpacitySubmenu() {
+  return OPACITY_LEVELS.map((level) => ({
+    label: `${Math.round(level * 100)}%${level === DEFAULT_OPACITY ? ' (padrão)' : ''}`,
+    type: 'radio',
+    checked: currentOpacity === level,
+    click: () => {
+      persistOpacity(level);
+      if (mainWindow) mainWindow.webContents.send('opacity:changed', level);
+    },
+  }));
 }
 
 function heightForTaskCount(count) {
@@ -325,6 +351,8 @@ app.whenReady().then(() => {
   windowStatePath = path.join(app.getPath('userData'), 'window-state.json');
   taskStore = new TaskStore(app.getPath('userData'));
   googleCalendar = new GoogleCalendarClient(app.getPath('userData'));
+  const savedOpacity = (loadWindowState() || {}).opacity;
+  if (OPACITY_LEVELS.includes(savedOpacity)) currentOpacity = savedOpacity;
   const initialState = taskStore.getState();
   createWindow(initialState.tasks.length);
   createTray();
@@ -365,6 +393,7 @@ ipcMain.handle('tasks:delete', (_event, id) => withResize(taskStore.deleteTask(i
 ipcMain.handle('tasks:rename', (_event, id, text) => withResize(taskStore.renameTask(id, text)));
 ipcMain.handle('tasks:reorder', (_event, orderedIds) => taskStore.reorderTasks(orderedIds));
 ipcMain.handle('draft:set', (_event, text) => taskStore.setDraft(text));
+ipcMain.handle('opacity:get', () => currentOpacity);
 
 ipcMain.on('window:minimize', () => {
   // A real OS minimize (not hide): it lands in the taskbar so it's easy to
@@ -401,6 +430,11 @@ ipcMain.on('context-menu:show', () => {
         resizeToTaskCount(state.tasks.length);
         mainWindow.webContents.send('tasks:updated', state);
       },
+    },
+    { type: 'separator' },
+    {
+      label: 'Opacidade do widget',
+      submenu: buildOpacitySubmenu(),
     },
     { type: 'separator' },
     {

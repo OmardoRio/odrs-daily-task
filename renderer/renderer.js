@@ -230,6 +230,11 @@ closeBtn.addEventListener('click', () => window.api.close());
 // Right-click on empty space (not a task row, not a button/input) instead
 // pops the native "Resetar tarefas" / "Verificar atualizações" menu.
 document.addEventListener('contextmenu', (event) => {
+  // If the user has selected some task text, let Chromium's own default
+  // context menu show up instead (it offers "Copy") - our custom menus
+  // only make sense when nothing is selected.
+  if (window.getSelection().toString().trim().length > 0) return;
+
   const taskItem = event.target.closest('.task-item');
   if (taskItem) {
     if (event.target.closest('button, input')) return;
@@ -248,6 +253,15 @@ document.addEventListener('contextmenu', (event) => {
   window.api.showContextMenu();
 });
 
+// Scales the glass panel's white overlay: at the 50% default this reduces
+// to the original hardcoded 0.55/0.28 gradient stops exactly.
+function applyOpacity(value) {
+  document.documentElement.style.setProperty('--glass-a1', Math.min(1, value * 1.1).toFixed(3));
+  document.documentElement.style.setProperty('--glass-a2', (value * 0.56).toFixed(3));
+}
+
 window.api.onTasksUpdated((state) => renderTasks(state));
+window.api.onOpacityChanged((value) => applyOpacity(value));
 
 refresh();
+window.api.getOpacity().then(applyOpacity);

@@ -49,14 +49,19 @@ da bandeja.
 - Passar o mouse sobre uma tarefa revela um ícone de lápis (editar o texto) e
   um "x" (remover). Clicar no lápis transforma o texto num campo editável —
   Enter salva, Esc cancela.
+- O texto de qualquer tarefa (inclusive as importadas do Google Agenda) pode
+  ser selecionado arrastando o mouse por cima, igual em qualquer outro texto
+  — daí é só copiar com Ctrl+C (ou Cmd+C no Mac) ou pelo menu que aparece ao
+  clicar com o botão direito em cima da seleção.
 - Também aparece um "⋮⋮" à esquerda: arraste por ele para reordenar as
   tarefas (a ordem é a prioridade). Funciona inclusive com tarefas importadas
   do Google Agenda, e a ordem escolhida é respeitada nas próximas
   sincronizações.
 - Clicar com o botão direito numa área vazia do widget (fora de uma tarefa ou
   botão) abre um menu com **"Resetar tarefas"** (apaga todas as tarefas do dia
-  — pede confirmação antes, pois não pode ser desfeito) e **"Verificar
-  atualizações"**.
+  — pede confirmação antes, pois não pode ser desfeito), **"Opacidade do
+  widget"** (submenu de 20% a 90%, em passos de 10% — quanto maior, mais
+  clara/sólida a caixa fica; 50% é o padrão) e **"Verificar atualizações"**.
 - Tudo é salvo automaticamente a cada ação (gravação atômica em disco), e o
   texto ainda não enviado no campo "Adicionar tarefa..." também é salvo
   enquanto você digita — uma queda de energia ou travamento não perde nada.
@@ -93,11 +98,29 @@ npm run build:mac   # gera .dmg e .zip em dist/
 npm run build:all   # os dois
 ```
 
-**Sobre a atualização automática no Mac:** sem um certificado de
-desenvolvedor Apple (pago), o macOS pode bloquear a instalação automática do
-update por não reconhecer o app como assinado — nesse caso o usuário Mac
-precisaria baixar e reinstalar manualmente a partir da Release. No Windows
-isso não costuma ser um problema.
+**Sobre instalar no Mac:** este app não tem um certificado de desenvolvedor
+Apple (o programa pago da Apple, ~US$99/ano) — por isso o instalador leva uma
+assinatura "ad-hoc" (gratuita, gerada automaticamente no build, sem precisar
+de conta Apple nenhuma). Isso é o mínimo necessário pro app conseguir *abrir*
+em Macs com chip Apple Silicon (M1/M2/M3/M4): sem nenhuma assinatura, o
+macOS recusa rodar o app e mostra "**'ODR's Daily Task' está danificado e não
+pode ser aberto**" — uma mensagem enganosa, já que o arquivo não está
+corrompido de verdade, só sem assinatura.
+
+Mesmo assinado ad-hoc, a primeira abertura em qualquer Mac ainda mostra o
+aviso normal do Gatekeeper (o app continua de um "desenvolvedor não
+identificado" aos olhos da Apple, já que isso exigiria o certificado pago).
+Para abrir mesmo assim, uma única vez por computador:
+1. Tente abrir o app normalmente — ele vai recusar e mostrar o aviso de
+   bloqueio.
+2. Vá em **Ajustes do Sistema → Privacidade e Segurança**, role até o fim da
+   página e clique em **"Abrir Mesmo Assim"** ao lado do aviso sobre o app
+   bloqueado, confirmando mais uma vez na janela que aparece.
+   (Em versões mais antigas do macOS, clicar com o botão direito no app e
+   escolher "Abrir" já resolve direto.)
+
+Depois desse primeiro "Abrir Mesmo Assim", as próximas aberturas e as
+atualizações automáticas passam a funcionar normalmente, sem pedir de novo.
 
 ## Integração com Google Agenda
 

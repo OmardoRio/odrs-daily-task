@@ -1,6 +1,6 @@
 {
   "name": "odrs-daily-task",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Widget de checklist de tarefas diárias com a identidade visual da Omar do Rio",
   "main": "main.js",
   "author": "Omar do Rio",
@@ -62,7 +62,10 @@
       ],
       "icon": "build/icon.png",
       "category": "public.app-category.productivity",
-      "artifactName": "${name}-${version}-${arch}-mac.${ext}"
+      "artifactName": "${name}-${version}-${arch}-mac.${ext}",
+      "identity": null,
+      "gatekeeperAssess": false,
+      "afterSign": "build/afterSign.js"
     }
   }
 }

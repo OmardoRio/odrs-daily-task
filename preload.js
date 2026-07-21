@@ -12,7 +12,11 @@ contextBridge.exposeInMainWorld('api', {
   close: () => ipcRenderer.send('window:close'),
   showContextMenu: () => ipcRenderer.send('context-menu:show'),
   showTaskContextMenu: (id, isRecurring) => ipcRenderer.send('task-context-menu:show', id, isRecurring),
+  getOpacity: () => ipcRenderer.invoke('opacity:get'),
   onTasksUpdated: (callback) => {
     ipcRenderer.on('tasks:updated', (_event, state) => callback(state));
+  },
+  onOpacityChanged: (callback) => {
+    ipcRenderer.on('opacity:changed', (_event, value) => callback(value));
   },
 });
