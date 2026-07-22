@@ -98,6 +98,18 @@ npm run build:mac   # gera .dmg e .zip em dist/
 npm run build:all   # os dois
 ```
 
+**Sobre instalar no Windows:** ao abrir o instalador baixado, o Windows
+SmartScreen normalmente mostra um aviso ("O Windows protegeu seu PC") antes de
+deixar rodar — isso acontece com qualquer programa novo que ainda não tem um
+certificado de assinatura de código pago (não existe uma opção gratuita que
+elimine esse aviso). O arquivo não tem nada de errado; para continuar, uma
+única vez por computador:
+1. No aviso, clique em **"Mais informações"**.
+2. Clique em **"Executar assim mesmo"**.
+
+Depois desse primeiro "Executar assim mesmo", as próximas instalações e
+atualizações automáticas passam a funcionar sem mostrar o aviso de novo.
+
 **Sobre instalar no Mac:** este app não tem um certificado de desenvolvedor
 Apple (o programa pago da Apple, ~US$99/ano) — por isso o instalador leva uma
 assinatura "ad-hoc" (gratuita, gerada automaticamente no build, sem precisar
