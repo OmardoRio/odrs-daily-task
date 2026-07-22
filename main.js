@@ -29,12 +29,18 @@ const MAX_HEIGHT = CHROME_HEIGHT + PROGRESS_ROW_HEIGHT + ROW_HEIGHT * MAX_VISIBL
 const OPACITY_LEVELS = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
 const DEFAULT_OPACITY = 0.5;
 
+// On by default - most users expect a "daily task" widget to just be there
+// when they log in, same as any other startup app. Persisted like opacity,
+// and toggleable from the tray in case someone doesn't want that.
+const DEFAULT_OPEN_AT_LOGIN = true;
+
 let mainWindow = null;
 let tray = null;
 let taskStore = null;
 let googleCalendar = null;
 let isQuitting = false;
 let currentOpacity = DEFAULT_OPACITY;
+let currentOpenAtLogin = DEFAULT_OPEN_AT_LOGIN;
 
 // Once the user manually drags or resizes the widget, that becomes their
 // fixed layout and the automatic "grow with the task list" behavior below
@@ -76,6 +82,16 @@ function buildOpacitySubmenu() {
       if (mainWindow) mainWindow.webContents.send('opacity:changed', level);
     },
   }));
+}
+
+// Only takes effect in a packaged build (setLoginItemSettings has nothing
+// meaningful to register while running unpackaged via `electron .`).
+function setOpenAtLogin(value) {
+  currentOpenAtLogin = value;
+  saveWindowState({ ...(loadWindowState() || {}), openAtLogin: value });
+  if (app.isPackaged) {
+    app.setLoginItemSettings({ openAtLogin: value });
+  }
 }
 
 function heightForTaskCount(count) {
@@ -223,6 +239,12 @@ function buildTrayMenu() {
       label: 'Mostrar / Ocultar',
       click: () => toggleMainWindow(),
     },
+    {
+      label: 'Abrir automaticamente ao ligar o computador',
+      type: 'checkbox',
+      checked: currentOpenAtLogin,
+      click: (menuItem) => setOpenAtLogin(menuItem.checked),
+    },
     { type: 'separator' },
     ...buildGoogleMenuItems(),
     { type: 'separator' },
@@ -353,6 +375,8 @@ app.whenReady().then(() => {
   googleCalendar = new GoogleCalendarClient(app.getPath('userData'));
   const savedOpacity = (loadWindowState() || {}).opacity;
   if (OPACITY_LEVELS.includes(savedOpacity)) currentOpacity = savedOpacity;
+  const savedOpenAtLogin = (loadWindowState() || {}).openAtLogin;
+  setOpenAtLogin(typeof savedOpenAtLogin === 'boolean' ? savedOpenAtLogin : DEFAULT_OPEN_AT_LOGIN);
   const initialState = taskStore.getState();
   createWindow(initialState.tasks.length);
   createTray();

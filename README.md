@@ -32,6 +32,11 @@ clique no ícone dele lá para reabrir. O widget também continua disponível pe
 / Ocultar". Para fechar de verdade (sair do app), use "Sair" no menu do ícone
 da bandeja.
 
+Por padrão o widget também abre sozinho ao ligar o computador, junto com os
+outros programas de inicialização — não precisa abrir manualmente toda vez.
+Para desligar isso, desmarque "Abrir automaticamente ao ligar o computador"
+no mesmo menu da bandeja.
+
 ## Como funciona o checklist
 
 - As tarefas são digitadas no campo "Adicionar tarefa..." e aparecem como
