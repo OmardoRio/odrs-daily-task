@@ -21,14 +21,23 @@ class TaskStore {
       const raw = fs.readFileSync(this.filePath, 'utf-8');
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object' && Array.isArray(parsed.tasks)) {
-        return { draft: '', ...parsed };
+        const data = { draft: '', recurringTemplates: [], ...parsed };
+        // Upgrading from a version that had no recurringTemplates yet: back-fill
+        // it from whatever is currently marked recurring, so nothing that was
+        // already recurring silently loses that status on the first load.
+        if (!Array.isArray(parsed.recurringTemplates)) {
+          data.recurringTemplates = data.tasks
+            .filter((t) => t.recurring)
+            .map((t) => ({ id: t.id, text: t.text }));
+        }
+        return data;
       }
     } catch (err) {
       // no file yet, or the file is missing/corrupted (e.g. the machine lost
       // power mid-write before atomic saves were in place) - start fresh
       // rather than crashing the app.
     }
-    return { date: todayKey(), tasks: [], draft: '' };
+    return { date: todayKey(), tasks: [], draft: '', recurringTemplates: [] };
   }
 
   // Written atomically (temp file + rename) so a crash or power loss mid-save
@@ -41,14 +50,20 @@ class TaskStore {
 
   // Recurring tasks survive the daily wipe (with "done" reset for the new
   // day); everything else - regular tasks and Google-imported ones, which
-  // get refreshed by the next sync anyway - is dropped like before.
+  // get refreshed by the next sync anyway - is dropped like before. They're
+  // materialized from recurringTemplates (not from today's tasks array), so
+  // one still reappears tomorrow even if today's instance was deleted.
   _rolloverIfNewDay() {
     const key = todayKey();
     if (this.data.date !== key) {
-      const recurring = this.data.tasks
-        .filter((t) => t.recurring)
-        .map((t) => ({ ...t, done: false }));
-      this.data = { date: key, tasks: recurring, draft: '' };
+      const templates = this.data.recurringTemplates || [];
+      const recurring = templates.map((tpl) => ({
+        id: tpl.id,
+        text: tpl.text,
+        done: false,
+        recurring: true,
+      }));
+      this.data = { date: key, tasks: recurring, draft: '', recurringTemplates: templates };
       this._save();
       return true;
     }
@@ -109,20 +124,32 @@ class TaskStore {
       const trimmed = String(text || '').trim().slice(0, 140);
       if (trimmed) {
         task.text = trimmed;
+        const template = this.data.recurringTemplates.find((t) => t.id === id);
+        if (template) template.text = trimmed;
         this._save();
       }
     }
     return this.getState();
   }
 
-  // Toggles a task between "recurring" (survives the daily reset) and
-  // regular. Google-imported tasks are managed by the sync, not by hand, so
+  // Toggles a task between "recurring" (survives the daily reset, even if
+  // today's instance gets deleted) and regular. The recurring definition
+  // lives in recurringTemplates, independent of today's task instance -
+  // that's what deleteTask() leaves untouched so the task comes back
+  // tomorrow. Google-imported tasks are managed by the sync, not by hand, so
   // this is a no-op for them - same restriction as renameTask above.
   toggleRecurring(id) {
     this._rolloverIfNewDay();
     const task = this.data.tasks.find((t) => t.id === id);
     if (task && task.source !== 'google') {
       task.recurring = !task.recurring;
+      if (task.recurring) {
+        if (!this.data.recurringTemplates.some((t) => t.id === id)) {
+          this.data.recurringTemplates.push({ id: task.id, text: task.text });
+        }
+      } else {
+        this.data.recurringTemplates = this.data.recurringTemplates.filter((t) => t.id !== id);
+      }
       this._save();
     }
     return this.getState();
@@ -177,10 +204,13 @@ class TaskStore {
   }
 
   // "Resetar tarefas" from the right-click menu: wipes every task for today,
-  // manual and Google-imported alike.
+  // manual and Google-imported alike, including recurring definitions (they
+  // won't come back tomorrow either - this is the one action meant to erase
+  // recurring tasks for good).
   resetTasks() {
     this._rolloverIfNewDay();
     this.data.tasks = [];
+    this.data.recurringTemplates = [];
     this._save();
     return this.getState();
   }
