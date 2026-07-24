@@ -5,6 +5,17 @@ const fs = require('fs');
 const { TaskStore } = require('./taskStore');
 const { GoogleCalendarClient } = require('./googleCalendar');
 
+// Only one instance of the widget should ever run at once - opening a
+// second copy (e.g. double-clicking the installer's shortcut again) should
+// just bring the existing one to front instead of spawning a duplicate
+// window. The first instance keeps the lock and this early-exits every
+// later one before it creates any window/tray of its own.
+const gotTheSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotTheSingleInstanceLock) {
+  app.quit();
+  process.exit(0);
+}
+
 const GOOGLE_SYNC_INTERVAL_MS = 10 * 60 * 1000;
 const UPDATE_CHECK_INTERVAL_MS = 2 * 60 * 60 * 1000;
 
@@ -368,6 +379,15 @@ function checkDailyRollover() {
     mainWindow.webContents.send('tasks:updated', state);
   }
 }
+
+// Someone tried to open a second copy - it already quit itself above, so
+// this just means: surface the one window we actually have.
+app.on('second-instance', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+});
 
 app.whenReady().then(() => {
   windowStatePath = path.join(app.getPath('userData'), 'window-state.json');

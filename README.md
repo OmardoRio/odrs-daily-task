@@ -37,6 +37,10 @@ outros programas de inicialização — não precisa abrir manualmente toda vez.
 Para desligar isso, desmarque "Abrir automaticamente ao ligar o computador"
 no mesmo menu da bandeja.
 
+Só roda uma janela por vez: se tentar abrir de novo (ex. clicando no atalho
+outra vez) enquanto já está aberto, nada de novo é criado — a janela já
+existente só vem para frente.
+
 ## Como funciona o checklist
 
 - As tarefas são digitadas no campo "Adicionar tarefa..." e aparecem como

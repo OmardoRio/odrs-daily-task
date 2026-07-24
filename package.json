@@ -1,6 +1,6 @@
 {
   "name": "odrs-daily-task",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Widget de checklist de tarefas diárias com a identidade visual da Omar do Rio",
   "main": "main.js",
   "author": "Omar do Rio",
