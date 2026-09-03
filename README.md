@@ -26,12 +26,18 @@ mais largo ou mais alto); uma vez redimensionado manualmente, o widget para de
 ajustar a altura sozinho conforme tarefas são adicionadas (a lista passa a
 rolar internamente dentro do tamanho escolhido).
 
-Por padrão, tanto o botão "─" quanto o "✕" fazem a mesma coisa: minimizam para
-a barra de tarefas do Windows (ou Dock, no Mac) como qualquer outro programa —
-clique no ícone dele lá para reabrir. O widget também continua disponível pelo
-ícone na bandeja do sistema (perto do relógio), clicando ou pelo menu "Mostrar
-/ Ocultar". Para fechar de verdade (sair do app), use "Sair" no menu do ícone
-da bandeja.
+Por padrão, tanto o botão "─" quanto o "✕" escondem o widget da tela — ele
+continua rodando normalmente em segundo plano, só não fica visível. Para
+trazer de volta, use o ícone na bandeja do sistema (perto do relógio, no
+canto da barra de tarefas): clique nele ou use o menu "Mostrar / Ocultar".
+Para fechar de verdade (sair do app), use "Sair" no mesmo menu.
+
+(O widget deliberadamente não usa o "minimizar para a barra de tarefas"
+tradicional do Windows: a partir do Windows 11, janelas minimizadas por um
+tempo entram automaticamente em "Modo de eficiência" - o Windows limita tanto
+os recursos do processo que ele para de responder a cliques, Alt+Tab e até
+"Fechar janela", só o Gerenciador de Tarefas consegue encerrar. Esconder em
+vez de minimizar evita esse problema por completo.)
 
 Por padrão o widget também abre sozinho ao ligar o computador, junto com os
 outros programas de inicialização — não precisa abrir manualmente toda vez.
@@ -41,15 +47,6 @@ no mesmo menu da bandeja.
 Só roda uma janela por vez: se tentar abrir de novo (ex. clicando no atalho
 outra vez) enquanto já está aberto, nada de novo é criado — a janela já
 existente só vem para frente.
-
-**Sobre fixar o ícone na barra de tarefas:** o Windows não permite mais que
-nenhum programa se fixe sozinho na barra de tarefas (isso foi bloqueado pela
-Microsoft por segurança desde 2016) — é sempre uma ação manual, igual em
-qualquer outro programa (Chrome, Word, etc.): clique com o botão direito no
-ícone dele na barra de tarefas (enquanto estiver aberto) e escolha **"Fixar
-na barra de tarefas"**, uma única vez por computador. Combinado com o "abrir
-sozinho ao ligar o computador" (ativado por padrão, ver acima), o ícone fica
-praticamente sempre lá.
 
 ## Como funciona o checklist
 

@@ -135,17 +135,11 @@ function resizeToTaskCount(count) {
 
 function toggleMainWindow() {
   if (!mainWindow) return;
-  if (mainWindow.isMinimized()) {
-    mainWindow.restore();
-    mainWindow.focus();
-  } else if (mainWindow.isVisible()) {
+  if (mainWindow.isVisible()) {
     mainWindow.hide();
   } else {
-    // Defensive: alwaysOnTop may have been dropped by the 'minimize' handler
-    // below without a matching 'restore' (e.g. the window was minimized,
-    // then hidden through some other path) - reassert it before showing.
-    mainWindow.setAlwaysOnTop(true);
     mainWindow.show();
+    mainWindow.focus();
   }
 }
 
@@ -192,32 +186,18 @@ function createWindow(initialTaskCount) {
     mainWindow.show();
   });
 
+  // Deliberately hide() rather than minimize() to the taskbar: Windows 11
+  // automatically throttles minimized windows into "Efficiency Mode" after a
+  // while (independent of battery/power settings - it happened to totally
+  // unrelated apps too), which starves the app's message loop enough that
+  // clicking the taskbar icon, Alt+Tab, and even "Close window" all stop
+  // responding, with no way back short of Task Manager. Hiding avoids that
+  // Windows-side throttling entirely; the tray icon is the way back.
   mainWindow.on('close', (event) => {
     if (!isQuitting) {
       event.preventDefault();
-      // Minimize rather than hide: a hidden window drops off the taskbar
-      // entirely (no way back except the tray icon), while minimizing keeps
-      // its taskbar button/pin in place - this can be reached by a native
-      // "Close window" from the taskbar's own right-click menu, not just
-      // our in-app buttons (which already call minimize() directly).
-      mainWindow.minimize();
+      mainWindow.hide();
     }
-  });
-
-  // Windows can fail to properly un-minimize/focus an always-on-top window
-  // (a known Chromium/Windows interaction for this window style) - the
-  // taskbar icon click, or Alt+Tab, can then silently do nothing. Dropping
-  // alwaysOnTop while minimized, and re-asserting it once restored, avoids
-  // the OS getting stuck trying to un-minimize a window that's pinned above
-  // everything else.
-  mainWindow.on('minimize', () => {
-    mainWindow.setAlwaysOnTop(false);
-  });
-
-  mainWindow.on('restore', () => {
-    mainWindow.setAlwaysOnTop(true);
-    mainWindow.show();
-    mainWindow.focus();
   });
 
   // Any drag (move) or manual resize the user does themselves - as opposed
@@ -418,7 +398,6 @@ function checkDailyRollover() {
 // this just means: surface the one window we actually have.
 app.on('second-instance', () => {
   if (!mainWindow) return;
-  if (mainWindow.isMinimized()) mainWindow.restore();
   mainWindow.show();
   mainWindow.focus();
 });
@@ -473,17 +452,18 @@ ipcMain.handle('tasks:reorder', (_event, orderedIds) => taskStore.reorderTasks(o
 ipcMain.handle('draft:set', (_event, text) => taskStore.setDraft(text));
 ipcMain.handle('opacity:get', () => currentOpacity);
 
+// "-" and "x" both just hide the widget (not a real OS minimize): Windows 11
+// throttles minimized windows into "Efficiency Mode" after a while, which can
+// leave the app unresponsive to the taskbar icon, Alt+Tab, or even "Close
+// window" - only Task Manager could then kill it. Hiding sidesteps that
+// entirely; the tray icon (near the clock) is the way to bring it back.
+// Fully closing still only happens via "Sair" in the tray.
 ipcMain.on('window:minimize', () => {
-  // A real OS minimize (not hide): it lands in the taskbar so it's easy to
-  // find and restore, instead of only being reachable from the tray icon.
-  if (mainWindow) mainWindow.minimize();
+  if (mainWindow) mainWindow.hide();
 });
 
 ipcMain.on('window:close', () => {
-  // By default "x" has the same effect as "-": it pins the widget to the
-  // taskbar/Dock instead of hiding it away where only the tray icon can
-  // bring it back. Fully closing still only happens via "Sair" in the tray.
-  if (mainWindow) mainWindow.minimize();
+  if (mainWindow) mainWindow.hide();
 });
 
 // Right-click on empty space in the widget (not on a task or a button) pops
