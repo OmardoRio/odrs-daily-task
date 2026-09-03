@@ -16,6 +16,15 @@ if (!gotTheSingleInstanceLock) {
   process.exit(0);
 }
 
+// Without a matching AppUserModelID, Windows can treat the running process
+// as a different identity than the installed shortcut it was launched from
+// - which is a known cause of the taskbar icon/pin behaving inconsistently
+// (not staying pinned, not grouping correctly). Must match build.appId in
+// package.json (what the NSIS installer registers on the shortcut).
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.omardorio.odrsdailytask');
+}
+
 const GOOGLE_SYNC_INTERVAL_MS = 10 * 60 * 1000;
 const UPDATE_CHECK_INTERVAL_MS = 2 * 60 * 60 * 1000;
 
@@ -132,6 +141,10 @@ function toggleMainWindow() {
   } else if (mainWindow.isVisible()) {
     mainWindow.hide();
   } else {
+    // Defensive: alwaysOnTop may have been dropped by the 'minimize' handler
+    // below without a matching 'restore' (e.g. the window was minimized,
+    // then hidden through some other path) - reassert it before showing.
+    mainWindow.setAlwaysOnTop(true);
     mainWindow.show();
   }
 }
@@ -182,18 +195,29 @@ function createWindow(initialTaskCount) {
   mainWindow.on('close', (event) => {
     if (!isQuitting) {
       event.preventDefault();
-      mainWindow.hide();
+      // Minimize rather than hide: a hidden window drops off the taskbar
+      // entirely (no way back except the tray icon), while minimizing keeps
+      // its taskbar button/pin in place - this can be reached by a native
+      // "Close window" from the taskbar's own right-click menu, not just
+      // our in-app buttons (which already call minimize() directly).
+      mainWindow.minimize();
     }
   });
 
-  // Windows sometimes restores a frameless/transparent/always-on-top window
-  // from the taskbar without actually repainting or re-asserting it above
-  // other windows (a known Chromium/Windows quirk for this window style) -
-  // clicking the taskbar icon can then look like nothing happened. Forcing
-  // show() and re-applying alwaysOnTop on every restore makes it reliable.
+  // Windows can fail to properly un-minimize/focus an always-on-top window
+  // (a known Chromium/Windows interaction for this window style) - the
+  // taskbar icon click, or Alt+Tab, can then silently do nothing. Dropping
+  // alwaysOnTop while minimized, and re-asserting it once restored, avoids
+  // the OS getting stuck trying to un-minimize a window that's pinned above
+  // everything else.
+  mainWindow.on('minimize', () => {
+    mainWindow.setAlwaysOnTop(false);
+  });
+
   mainWindow.on('restore', () => {
-    mainWindow.show();
     mainWindow.setAlwaysOnTop(true);
+    mainWindow.show();
+    mainWindow.focus();
   });
 
   // Any drag (move) or manual resize the user does themselves - as opposed

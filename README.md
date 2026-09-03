@@ -42,6 +42,15 @@ Só roda uma janela por vez: se tentar abrir de novo (ex. clicando no atalho
 outra vez) enquanto já está aberto, nada de novo é criado — a janela já
 existente só vem para frente.
 
+**Sobre fixar o ícone na barra de tarefas:** o Windows não permite mais que
+nenhum programa se fixe sozinho na barra de tarefas (isso foi bloqueado pela
+Microsoft por segurança desde 2016) — é sempre uma ação manual, igual em
+qualquer outro programa (Chrome, Word, etc.): clique com o botão direito no
+ícone dele na barra de tarefas (enquanto estiver aberto) e escolha **"Fixar
+na barra de tarefas"**, uma única vez por computador. Combinado com o "abrir
+sozinho ao ligar o computador" (ativado por padrão, ver acima), o ícone fica
+praticamente sempre lá.
+
 ## Como funciona o checklist
 
 - As tarefas são digitadas no campo "Adicionar tarefa..." e aparecem como
