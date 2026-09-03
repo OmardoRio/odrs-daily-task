@@ -186,6 +186,16 @@ function createWindow(initialTaskCount) {
     }
   });
 
+  // Windows sometimes restores a frameless/transparent/always-on-top window
+  // from the taskbar without actually repainting or re-asserting it above
+  // other windows (a known Chromium/Windows quirk for this window style) -
+  // clicking the taskbar icon can then look like nothing happened. Forcing
+  // show() and re-applying alwaysOnTop on every restore makes it reliable.
+  mainWindow.on('restore', () => {
+    mainWindow.show();
+    mainWindow.setAlwaysOnTop(true);
+  });
+
   // Any drag (move) or manual resize the user does themselves - as opposed
   // to our own programmatic setSize() calls above, which set
   // suppressBoundsTracking - becomes their permanent custom layout.

@@ -1,7 +1,8 @@
 # ODR's Daily Task
 
 Widget desktop (Electron) com um checklist de tarefas diárias, visual "vidro"
-semi-transparente com bordas arredondadas e o mascote da Omar do Rio.
+semi-transparente com bordas arredondadas, um brilho sutil "liquid glass" no
+canto do painel e o mascote da Omar do Rio.
 
 > Este repositório é público e serve só para distribuir o instalador (link de
 > download universal, sem precisar de acesso a nenhum outro sistema interno).
